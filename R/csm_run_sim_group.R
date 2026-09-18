@@ -82,7 +82,7 @@
 #'                            c(alpha = 1.2,
 #'                              beta = 0.5,
 #'                              gamma = 0.15,
-#'                              delta = 0.35))
+#'                              delta = 0.35)))
 #'
 csm_run_sim_group <- function(model_function,
                               y_init,
