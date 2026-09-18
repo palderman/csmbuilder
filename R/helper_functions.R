@@ -130,6 +130,27 @@ csm_mod_arr <- function(Tt, ko, H, E, To){
   ko*(H*exp(E/R*(1/(To+273.15)-1/(Tt + 273.15))))/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15)))))
 }
 
+#' Fraction of active enzymes based on modified Arrhenius function
+#'
+#' This function computes the fraction of active enzymes according to the
+#' the modified Arrhenius function. The fraction of denatured enzymes can be
+#' calculated by subtracting this function from 1.
+#'
+#' @export
+#'
+#' @param Tt temperature in Celsius
+#' @param H deactivation energy parameter
+#' @param E activation energy parameter
+#' @param To optimum temperature in Celsius
+#'
+#' @returns
+#' a numeric value of the fraction of active enzymes rate at temperature Tt
+#'
+csm_arr_fr_active <- function(Tt, H, E, To){
+  R <- 8.314
+  H/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15)))))
+}
+
 #' Hill equation for up-regulation
 #'
 #' @export

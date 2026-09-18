@@ -1,4 +1,10 @@
 
+# csmbuilder v0.1.0.9003
+
+- Adding new helper function called csm_arr_fr_active() for calculating the
+  fraction of active enzymes based on a derivation of the modified Arrhenius
+  equation
+
 # csmbuilder v0.1.0.9002
 
 - Add n_dim argument to csm_create_data_structure() for specifying the dimensions
