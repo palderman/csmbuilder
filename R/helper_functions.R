@@ -127,7 +127,7 @@ csm_get_at_t <- function(x, t_ind, t,
 #'
 csm_mod_arr <- function(Tt, ko, H, E, To){
   R <- 8.314
-  ko*(H*exp(E/R*(1/(To+273.15)-1/(Tt + 273.15))))/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15)))))
+  unname(ko*(H*exp(E/R*(1/(To+273.15)-1/(Tt + 273.15))))/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15))))))
 }
 
 #' Fraction of active enzymes based on modified Arrhenius function
@@ -148,7 +148,7 @@ csm_mod_arr <- function(Tt, ko, H, E, To){
 #'
 csm_arr_fr_active <- function(Tt, H, E, To){
   R <- 8.314
-  H/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15)))))
+  unname((H-E)/(H - E*(1-exp(H/R*(1/(To+273.15)-1/(Tt + 273.15))))))
 }
 
 #' Hill equation for up-regulation
@@ -181,4 +181,148 @@ csm_hill_up_reg <- function(L, K, n){
 csm_hill_down_reg <- function(L, K, n){
   K_n <- K**n
   K_n/(K_n + L**n)
+}
+
+#' Hill coefficient for up-regulation
+#'
+#' @export
+#'
+#' @param x a numeric value providing the value of the Hill equation at L
+#' @param L a numeric value providing the ligand concentration
+#' @param K a numeric value providing the ligand concentration at half occupation
+#'
+#' @returns
+#' a numeric value
+#'
+csm_calc_n_up <- function(x, L, K){
+  log((1-x)/x)/log(K/L)
+}
+
+#' Hill coefficient for down-regulation
+#'
+#' @export
+#'
+#' @param x a numeric value providing the value of the Hill equation at L
+#' @param L a numeric value providing the ligand concentration
+#' @param K a numeric value providing the ligand concentration at half occupation
+#'
+#' @returns
+#' a numeric value
+#'
+csm_calc_n_down <- function(x, L, K){
+  log((1-x)/x)/log((L/K))
+}
+
+#' Logistic switch function
+#'
+#' @export
+#'
+#' @param x a numeric value providing the input variable
+#' @param r a numeric value providing the rate parameter of the logistic function
+#' @param x0 a numeric value providing the mid-point parameter of the logistic function
+#'
+#' @returns
+#' a numeric value between 0 and 1
+#'
+csm_logistic <- function(x, r, x0){
+  1./(1.+exp(-r*(x - x0)))
+}
+
+#' Calculate logistic rate parameter
+#'
+#' @export
+#'
+#' @param x a numeric value providing a target input value
+#' @param f_x a numeric value providing the target logistic function value at x
+#' @param x0 a numeric value providing the mid-point parameter of the logistic function
+#'
+#' @returns
+#' a numeric value
+#'
+csm_calc_logistic_r <- function(x, f_x, x0){
+  -log(1/f_x - 1)/(x - x0)
+}
+
+
+#' Calculate smooth approximation to a bounded variable
+#'
+#' @export
+#'
+#' @param x a numeric input value
+#' @param min_bound a numeric value of the minimum bound
+#' @param max_bound a numeric value of the maximum bound
+#'
+#' @returns
+#' a numeric value
+#'
+csm_smooth_bounds <- function(x, min_val, max_val){
+  x0 <- (max_val + min_val)/2
+  r <- csm_calc_logistic_r(x = min_val, f_x = 0.01, x0 = x0)
+  min_val + (max_val - min_val)*csm_logistic(x, r, x0)
+}
+
+#' Calculate the LogSumExp smooth approximation to a bounded variable
+#'
+#' @export
+#'
+#' @param x1 a numeric input value
+#' @param x2 a numeric input value
+#' @param alpha a numeric value providing the sharpness of the approximation function
+#'
+#' @returns
+#' a numeric value
+#'
+csm_log_sum_exp <- function(x, y, alpha = 1){
+  log(sum(exp(alpha*x)+exp(alpha*y)))/alpha
+}
+
+#' Calculate the LogSumExp smooth approximation to a bounded variable
+#'
+#' @export
+#'
+#' @param x1 a numeric input value
+#' @param x2 a numeric input value
+#' @param alpha a numeric value providing the sharpness of the approximation function
+#'
+#' @returns
+#' a numeric value
+#'
+csm_log_sum_exp <- function(x, y, alpha = 1){
+  stopifnot(length(x) == 1)
+  stopifnot(length(y) == 1)
+  stopifnot(length(alpha) == 1)
+  max_val <- max(x,y)*alpha
+  (max_val + log((exp(alpha*x-max_val)+exp(alpha*y-max_val))))/alpha
+}
+
+
+#' Calculate the Boltzmann operator smooth approximation to the maximum function
+#'
+#' @export
+#'
+#' @param x1 a scalar numeric input value
+#' @param x2 a scalar numeric input value
+#' @param alpha a scalar numeric value providing the sharpness of the approximation function
+#'
+#' @returns
+#' a numeric value
+#'
+csm_boltz_max <- function(x1, x2, alpha = 1){
+  stopifnot(length(x1) == 1)
+  stopifnot(length(x2) == 1)
+  stopifnot(length(alpha) == 1)
+  ex1 <- exp(alpha*x1)
+  ex2 <- exp(alpha*x2)
+  (x1*ex1+x2*ex2)/(ex1+ex2)
+}
+
+
+#' @export
+csm_hs_max <- function(x1, x2, epsilon = 1e-6){
+(x1 + x2 + sqrt((x1-x2)**2 + epsilon))/2
+}
+
+#' @export
+csm_hs_min <- function(x1, x2, epsilon = 1e-6){
+  (x1 + x2 - sqrt((x1-x2)**2 + epsilon))/2
 }
