@@ -4,7 +4,7 @@
 \alias{csm_run_sim}
 \title{Run a Cropping System Model (CSM) simulation}
 \usage{
-csm_run_sim(model_function, y_init, t, ..., method = "euler")
+csm_run_sim(model_function, y_init, t, events, ..., method = "euler")
 }
 \arguments{
 \item{model_function}{a rendered model produced by
@@ -14,6 +14,13 @@ csm_run_sim(model_function, y_init, t, ..., method = "euler")
 
 \item{t}{an optional vector of time points for which simulated model outputs
 are desired}
+
+\item{events}{a data frame of external events with a column named \code{time}
+that contains the time of each event and a list column named \code{event}
+each element of which is a function that accepts a vector of state variables
+and returns a vector of state variables to be used as the initial conditions
+for continuing the simulation after the event. The times for all events must
+be within the time range specified by the \code{t} argument.}
 
 \item{...}{additional arguments to pass to model_function for simulation}
 

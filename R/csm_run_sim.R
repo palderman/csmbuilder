@@ -12,6 +12,13 @@
 #' @param t an optional vector of time points for which simulated model outputs
 #'  are desired
 #'
+#' @param events a data frame of external events with a column named \code{time}
+#'  that contains the time of each event and a list column named \code{event}
+#'  each element of which is a function that accepts a vector of state variables
+#'  and returns a vector of state variables to be used as the initial conditions
+#'  for continuing the simulation after the event. The times for all events must
+#'  be within the time range specified by the \code{t} argument.
+#'
 #' @param ... additional arguments to pass to model_function for simulation
 #'
 #' @param method numerical integration method to be used. See [deSolve::ode()]
@@ -65,6 +72,7 @@
 csm_run_sim <- function(model_function,
                         y_init,
                         t,
+                        events,
                         ...,
                         method = "euler"){
   if(!requireNamespace('deSolve', quietly = TRUE)){
@@ -73,9 +81,58 @@ csm_run_sim <- function(model_function,
       paste0("Please install with install.packages('deSolve') and try again.") |>
       stop()
   }
-  deSolve::ode(y = y_init,
-               times = t,
-               func = model_function,
-               ...,
-               method = method)
+
+  if(missing(events)){
+    t_list <- list(t)
+  }else{
+    max_t <- max(events[["time"]])
+    t_list <- vector(mode = "list",
+                     length = nrow(events) + 1)
+    for(i in seq_along(t_list)){
+      if(i == 1){
+        t_list[[i]] <- t[t <= events[["time"]][i]]
+      }else if(i <= nrow(events)){
+        t_list[[i]] <- t[t >= events[["time"]][i-1] &
+                         t <= events[["time"]][i]    ]
+      }else{
+        t_list[[i]] <- t[t >= max_t]
+      }
+    }
+  }
+
+  sim_out <- vector(mode = "list",
+                    length = length(t_list))
+
+  for(i in seq_along(t_list)){
+    if(i == 1){
+      y_init_i <- y_init
+    }else if(!missing(events)){
+      event <- events[["event"]][[i-1]]
+      y_init_i <-
+        sim_out[[i-1]] |>
+        tail(1) |>
+        subset(select = -1) |>
+        unlist() |>
+        event()
+    }
+    sim_out[[i]] <-
+      deSolve::ode(y = y_init_i,
+                   times = t_list[[i]],
+                   func = model_function,
+                   ...,
+                   method = method) |>
+      as.data.frame()
+    if(i > 1){
+      sim_out[[i]] <-
+        sim_out[[i]] |>
+        tail(-1)
+    }
+  }
+  sim_out <-
+    sim_out |>
+    do.call(rbind, args = _)
+
+  rownames(sim_out) <- NULL
+
+  sim_out
 }
