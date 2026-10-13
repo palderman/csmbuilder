@@ -130,7 +130,8 @@ csm_run_sim <- function(model_function,
   }
   sim_out <-
     sim_out |>
-    do.call(rbind, args = _)
+    do.call(rbind, args = _) |>
+    as.data.frame()
 
   rownames(sim_out) <- NULL
 
