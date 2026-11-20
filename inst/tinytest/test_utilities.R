@@ -128,6 +128,14 @@ target <- t*2
 expect_equal(actual, target,
              info = "csm_get_at_t(\"linear\") daily time step between interval")
 
+expect_equal(
+  csmbuilder::csm_get_at_t(
+    c(20, 20, 20), c(0, 0.5, 1), t = 0.25, search = "interpolation"
+  ),
+  20,
+  info = "csm_get_at_t(\"linear\") preserves constant values between intervals"
+)
+
 # csm_get_at_t()
 # t on time interval
 # t_ind follows hourly time step (with t in day units)

@@ -107,7 +107,8 @@ csm_get_at_t <- function(x, t_ind, t,
   if(t_ind[i] == t){
     return(x[i])
   }else{
-    return(x[i]*(t_ind[j]-t) + x[j]*(t-t_ind[i]))/(t_ind[j] - t_ind[i])
+    return((x[i]*(t_ind[j]-t) + x[j]*(t-t_ind[i]))/
+             (t_ind[j] - t_ind[i]))
   }
 
 }

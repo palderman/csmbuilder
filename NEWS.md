@@ -1,4 +1,8 @@
 
+# csmbuilder (development version)
+
+- Fix linear interpolation returning an unscaled numerator for non-unit time steps.
+
 # csmbuilder v0.1.1
 
 - Adding new helper function called csm_arr_fr_active() for calculating the
