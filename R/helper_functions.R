@@ -295,7 +295,6 @@ csm_log_sum_exp <- function(x, y, alpha = 1){
   (max_val + log((exp(alpha*x-max_val)+exp(alpha*y-max_val))))/alpha
 }
 
-
 #' Calculate the Boltzmann operator smooth approximation to the maximum function
 #'
 #' @export
@@ -317,12 +316,112 @@ csm_boltz_max <- function(x1, x2, alpha = 1){
 }
 
 
+#' Calculate the smooth maximum function
+#'
 #' @export
+#'
+#' @param x1 a scalar numeric input value
+#' @param x2 a scalar numeric input value
+#' @param epsilon a scalar numeric value providing the sharpness of the approximation function
+#'
+#' @returns
+#' a numeric value
+#'
 csm_hs_max <- function(x1, x2, epsilon = 1e-6){
 (x1 + x2 + sqrt((x1-x2)**2 + epsilon))/2
 }
 
+#' Calculate the smooth minimum function
+#'
 #' @export
+#'
+#' @param x1 a scalar numeric input value
+#' @param x2 a scalar numeric input value
+#' @param epsilon a scalar numeric value providing the sharpness of the approximation function
+#'
+#' @returns
+#' a numeric value
+#'
 csm_hs_min <- function(x1, x2, epsilon = 1e-6){
   (x1 + x2 - sqrt((x1-x2)**2 + epsilon))/2
 }
+
+#' Calculate volumetric soil water content with van Genuchten curve
+#'
+#' @export
+#'
+#' @param psi matric potential in kPa at which to calculate volumetric soil water content
+#'
+#' @param theta_r residual volumetric water content for dry soil
+#'
+#' @param theta_s saturated volumetric water content for wet soil
+#'
+#' @param a the alpha parameter for the van Genuchten equation related to the
+#'  inverse of the air entry suction
+#'
+#' @param n the n parameter for the van Genuchten equation related to the
+#'  pore-size distribution
+#'
+#' @return volumetric soil water content values
+#'
+#' @examples
+#'
+#' csm_vanG_theta(-100, 0.034, 0.41, 0.273, 1.39)
+#'
+csm_vanG_theta <- function (psi, theta_r, theta_s, a, n){
+  theta_r + (theta_s - theta_r)/(1 + (-a * psi)^n)^(1 - 1/n)
+}
+
+#' Calculate water potential with van Genuchten curve
+#'
+#' @export
+#'
+#' @param theta_i volumetric water content at which to calculate water potential
+#'
+#' @param theta_r residual volumetric water content for dry soil
+#'
+#' @param theta_s saturated volumetric water content for wet soil
+#'
+#' @param a the alpha parameter for the van Genuchten equation related to the
+#'  inverse of the air entry suction
+#'
+#' @param n the n parameter for the van Genuchten equation related to the
+#'  pore-size distribution
+#'
+#' @return water potential values
+#'
+#' @examples
+#'
+#' csm_vanG_psi(0.1372432, 0.034, 0.41, 0.273, 1.39)
+#'
+csm_vanG_psi <- function (theta_i, theta_r, theta_s, a, n){
+  (((theta_s - theta_r)/(theta_i - theta_r))^(n/(n - 1)) - 1)^(1/n)/-a
+}
+
+#' Calculate hydraulic conductivity with van Genuchten-Maulem model
+#'
+#' @export
+#'
+#' @param theta_i volumetric water content at which to calculate water potential
+#'
+#' @param theta_r residual volumetric water content for dry soil
+#'
+#' @param theta_s saturated volumetric water content for wet soil
+#'
+#' @param a the alpha parameter for the van Genuchten equation related to the
+#'  inverse of the air entry suction
+#'
+#' @param n the n parameter for the van Genuchten equation related to the
+#'  pore-size distribution
+#'
+#' @return water potential values
+#'
+#' @examples
+#'
+#' csm_vanG_psi(0.1372432, 0.034, 0.41, 0.273, 1.39)
+#'
+csm_vanG_maulem_K <- function (theta_i, theta_r, theta_s, a, n, Ko, L){
+  Se <- (theta_i - theta_r)/(theta_s - theta_r)
+  Ko*Se^L*(1-(1-Se^(n/(n-1)))^(1-1/n))^2
+}
+
